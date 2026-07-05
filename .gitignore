@@ -1,0 +1,13 @@
+# Node
+node_modules/
+.env
+
+# Uploads
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# React build
+frontend/build/
+
+# Logs
+*.log
