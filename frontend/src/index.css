@@ -1,0 +1,82 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Lato:wght@300;400;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* { box-sizing: border-box; }
+body { background: #FAFBFF; color: #0F2456; font-family: 'Lato', sans-serif; -webkit-font-smoothing: antialiased; }
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: #E8F2FF; }
+::-webkit-scrollbar-thumb { background: #1B3A7A40; border-radius: 3px; }
+
+/* ── Reveal animation ── */
+.reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s ease, transform 0.7s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal-left { opacity: 0; transform: translateX(-24px); transition: opacity 0.7s ease, transform 0.7s ease; }
+.reveal-left.visible { opacity: 1; transform: translateX(0); }
+
+/* ── Boutons ── */
+.btn-royal {
+  background: #1B3A7A; color: #fff;
+  font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+  padding: 13px 30px; font-family: 'Lato', sans-serif; font-weight: 700;
+  border: none; cursor: pointer; display: inline-block;
+  transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 16px rgba(27,58,122,0.25);
+}
+.btn-royal:hover { background: #0F2456; box-shadow: 0 6px 24px rgba(27,58,122,0.35); }
+
+.btn-gold {
+  background: #C9A84C; color: #0F2456;
+  font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+  padding: 13px 30px; font-family: 'Lato', sans-serif; font-weight: 700;
+  border: none; cursor: pointer; display: inline-block;
+  transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 16px rgba(201,168,76,0.30);
+}
+.btn-gold:hover { background: #E8C97A; }
+
+.btn-outline {
+  background: transparent; color: #1B3A7A;
+  font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+  padding: 12px 30px; font-family: 'Lato', sans-serif; font-weight: 700;
+  border: 2px solid #1B3A7A40; cursor: pointer; display: inline-block;
+  transition: all 0.2s;
+}
+.btn-outline:hover { border-color: #1B3A7A; background: #E8F2FF; }
+
+.btn-outline-white {
+  background: transparent; color: #fff;
+  font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+  padding: 12px 30px; border: 2px solid rgba(255,255,255,0.5);
+  cursor: pointer; display: inline-block; transition: all 0.2s;
+  font-family: 'Lato', sans-serif; font-weight: 700;
+}
+.btn-outline-white:hover { border-color: #fff; background: rgba(255,255,255,0.1); }
+
+/* ── Tag de section ── */
+.section-tag {
+  font-size: 10px; letter-spacing: 4px; text-transform: uppercase;
+  color: #C9A84C; font-family: 'Lato', sans-serif; font-weight: 700;
+}
+.gold-line { width: 48px; height: 2px; background: #C9A84C; display: block; }
+
+/* ── Card hover ── */
+.hover-lift { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+.hover-lift:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(27,58,122,0.18); }
+
+/* ── Gradient hero royal ── */
+.hero-gradient { background: linear-gradient(135deg, #091840 0%, #1B3A7A 50%, #2E6DB4 100%); }
+.hero-pattern {
+  background-image: radial-gradient(circle at 20% 50%, rgba(201,168,76,0.08) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 20%, rgba(255,255,255,0.05) 0%, transparent 40%);
+}
+
+/* ── Input focus ── */
+.input-royal {
+  border: 1px solid #CBD5E8; border-radius: 4px;
+  padding: 10px 14px; font-size: 14px; width: 100%;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background: #fff; color: #0F2456;
+}
+.input-royal:focus { outline: none; border-color: #1B3A7A; box-shadow: 0 0 0 3px rgba(27,58,122,0.10); }
