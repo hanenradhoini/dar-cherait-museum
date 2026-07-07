@@ -24,7 +24,8 @@ router.post(
         return res.status(400).json({ message: 'Aucun fichier reçu' });
       }
 
-      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      // Utilise BASE_URL si définie (production), sinon devine depuis la requête (dev local)
+      const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
       const saved = [];
 
       for (const file of req.files) {
