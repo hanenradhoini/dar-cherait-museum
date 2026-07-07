@@ -1,4 +1,3 @@
-// backend/server.js
 const express = require('express');
 const cors    = require('cors');
 const path    = require('path');
@@ -16,6 +15,12 @@ const mediaRoutes        = require('./routes/media');
 const adminRoutes        = require('./routes/admin');
 
 const app = express();
+
+// ── Faire confiance au proxy de Render ──────────────────────
+// Sans ça, req.protocol renvoie toujours "http" même en prod HTTPS,
+// car Render termine le TLS au niveau du proxy et transmet la requête
+// en interne via HTTP avec un header X-Forwarded-Proto.
+app.set('trust proxy', 1);
 
 // ── CORS ─────────────────────────────────────────────────────
 const allowedOrigins = [
