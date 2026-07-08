@@ -4,7 +4,7 @@ const router = express.Router();
 const fs = require('fs');
 const path = require('path');
 const { requireAuth } = require('../middleware/auth');
-const { upload, handleUploadError, UPLOAD_DIR } = require('../middleware/upload');
+const { upload, handleUploadError, UPLOAD_DIR, useCloudinary } = require('../middleware/upload');
 const Media = require('../models/Media');
 const { sendError } = require('../utils/errorHandler');
 
@@ -24,16 +24,21 @@ router.post(
         return res.status(400).json({ message: 'Aucun fichier reçu' });
       }
 
-      // Utilise BASE_URL si définie (production), sinon devine depuis la requête (dev local)
-      const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
       const saved = [];
 
       for (const file of req.files) {
         console.log('   → traitement:', file.filename, file.mimetype, file.size, 'octets');
+
+        // Cloudinary fournit déjà l'URL HTTPS complète dans file.path.
+        // En local (sans Cloudinary configuré), on reconstruit l'URL comme avant.
+        const fileUrl = useCloudinary
+          ? file.path
+          : `${process.env.BASE_URL || `${req.protocol}://${req.get('host')}`}/uploads/${file.filename}`;
+
         const media = await Media.create({
           filename:     file.filename,
           originalName: file.originalname,
-          url:          `${baseUrl}/uploads/${file.filename}`,
+          url:          fileUrl,
           mimeType:     file.mimetype,
           tailleMo:     +(file.size / 1024 / 1024).toFixed(2),
           uploadePar:   req.admin.email,
@@ -129,9 +134,20 @@ router.delete('/:id/force', requireAuth, async (req, res) => {
 });
 
 async function _deleteMediaFile(media) {
-  const filePath = path.join(UPLOAD_DIR, media.filename);
-  if (fs.existsSync(filePath)) {
-    fs.unlinkSync(filePath);
+  if (useCloudinary) {
+    const cloudinary = require('../config/cloudinary');
+    try {
+      await cloudinary.uploader.destroy(
+        media.filename.startsWith('dar-cherait/') ? media.filename : `dar-cherait/${media.filename}`
+      );
+    } catch (err) {
+      console.warn('⚠️ Suppression Cloudinary échouée :', err.message);
+    }
+  } else {
+    const filePath = path.join(UPLOAD_DIR, media.filename);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
   }
   await Media.findByIdAndDelete(media._id);
 }
