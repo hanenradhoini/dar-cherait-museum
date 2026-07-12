@@ -13,7 +13,7 @@ const reservationsRoutes = require('./routes/reservations');
 const contentRoutes      = require('./routes/content');
 const mediaRoutes        = require('./routes/media');
 const adminRoutes        = require('./routes/admin');
-
+const subscriptionsRoutes = require('./routes/subscriptions');   // ← AJOUTE CETTE LIGNE
 const app = express();
 
 // ── Faire confiance au proxy de Render ──────────────────────
@@ -53,7 +53,7 @@ app.use('/api/reservations', reservationsRoutes);
 app.use('/api/content',      contentRoutes);
 app.use('/api/media',        mediaRoutes);
 app.use('/api/admin',        adminRoutes);
-
+app.use('/api/subscriptions', subscriptionsRoutes);   // ← AJOUTE CETTE LIGNE
 app.get('/api/health', (_req, res) => res.json({ status: 'ok', timestamp: new Date() }));
 
 // 404

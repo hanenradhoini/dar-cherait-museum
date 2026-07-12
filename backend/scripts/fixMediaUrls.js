@@ -1,20 +1,31 @@
-// backend/scripts/fixMediaUrls.js
-require('dotenv').config();
+// backend/scripts/fixMediaUrlsHost.js
+require('dotenv').config({ path: '../.env.production.local' });
 const connectMongo = require('../config/mongo');
 const Media = require('../models/Media');
+
+const CORRECT_BASE_URL = 'https://dar-cherait-museum.onrender.com';
 
 async function fixUrls() {
   await connectMongo();
 
-  const medias = await Media.find({ url: { $regex: '^http://' } });
+  // Cible toute URL qui n'est pas déjà sur le bon host
+  const medias = await Media.find({
+    url: { $not: { $regex: `^${CORRECT_BASE_URL}` } },
+  });
+
   console.log(`🔎 ${medias.length} média(s) à corriger`);
 
   let count = 0;
   for (const media of medias) {
-    const newUrl = media.url.replace('http://', 'https://');
-    await Media.updateOne({ _id: media._id }, { $set: { url: newUrl } });
-    console.log(`   ✅ ${media.filename} → ${newUrl}`);
-    count++;
+    // On ne garde que le nom de fichier, peu importe l'ancien host
+    const filename = media.filename;
+    const newUrl = `${CORRECT_BASE_URL}/uploads/${filename}`;
+
+    if (newUrl !== media.url) {
+      await Media.updateOne({ _id: media._id }, { $set: { url: newUrl } });
+      console.log(`   ✅ ${filename} → ${newUrl}`);
+      count++;
+    }
   }
 
   console.log(`🎉 Terminé : ${count} URL(s) corrigée(s)`);

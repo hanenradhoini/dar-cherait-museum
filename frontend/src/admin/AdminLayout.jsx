@@ -9,6 +9,7 @@ const NAV = [
   { to: '/admin/contenu',      label: 'Contenu',          icon: '📝' },
   { to: '/admin/annonces',     label: 'Annonces',         icon: '📢' },
   { to: '/admin/media',        label: 'Médias',           icon: '🖼️' },
+  { to: '/admin/abonnements',  label: 'Abonnements',      icon: '💳' },   // ← AJOUTE CETTE LIGN
   { to: '/admin/utilisateurs', label: 'Utilisateurs',     icon: '👥' },
   { to: '/admin/admins',       label: 'Administrateurs',  icon: '👤' },
 ];

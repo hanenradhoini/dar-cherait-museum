@@ -8,15 +8,43 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// Injecter le bon token selon le contexte :
-// - Si on est sur une route /admin → adminToken
-// - Sinon → token visiteur
+// Endpoints qui doivent TOUJOURS utiliser le token visiteur, peu importe la page
+// affichée (ex: AuthContext appelle /account/me au chargement de l'app, même
+// si on navigue sur une page /admin/... — il ne faut jamais lui donner le token admin).
+const ALWAYS_USER_PREFIXES = [
+  '/account',
+  '/subscriptions/calculate',
+  '/subscriptions/mine',
+  '/subscriptions/categories',
+  '/reservations/mine',
+  '/reservations/lookup',
+];
+
+// Endpoints qui doivent TOUJOURS utiliser le token admin, peu importe la page.
+const ADMIN_PATH_RE = /\/admin(\/|$)/;
+
+function isAlwaysUser(url) {
+  return ALWAYS_USER_PREFIXES.some(p => url?.startsWith(p)) || url === '/subscriptions';
+}
+
+// Injecter le bon token :
+// 1. Si l'endpoint est explicitement "toujours visiteur" → token visiteur, point final.
+// 2. Sinon, si l'endpoint contient /admin ou /auth/ → token admin.
+// 3. Sinon, on se base sur la page affichée (/admin/... → token admin) — nécessaire
+//    car des routes comme /media, /content, /annonces, /reservations (liste admin)
+//    n'ont pas "/admin" dans leur URL mais sont bien des routes admin.
 api.interceptors.request.use((config) => {
-  const isAdminRequest =
-    config.url?.includes('/admin/') ||
-    config.url?.includes('/auth/me') ||
-    config.url?.includes('/auth/login') ||
-    window.location.pathname.startsWith('/admin');
+  const url = config.url || '';
+  let isAdminRequest;
+
+  if (isAlwaysUser(url)) {
+    isAdminRequest = false;
+  } else {
+    isAdminRequest =
+      ADMIN_PATH_RE.test(url) ||
+      url.startsWith('/auth/') ||
+      window.location.pathname.startsWith('/admin');
+  }
 
   const token = isAdminRequest
     ? localStorage.getItem('adminToken')

@@ -25,6 +25,7 @@ import AdminLoginPage   from './admin/AdminLoginPage';
 import AdminLayout      from './admin/AdminLayout';
 import DashboardPage    from './admin/DashboardPage';
 import ReservationsPage from './admin/ReservationsPage';
+import AbonnementsPage  from './admin/AbonnementsPage';
 import MediaPage        from './admin/MediaPage';
 import ContenuPage      from './admin/ContenuPage';
 import AnnoncesPage     from './admin/AnnoncesPage';
@@ -60,6 +61,7 @@ export default function App() {
             }>
               <Route index               element={<DashboardPage />} />
               <Route path="reservations" element={<ReservationsPage />} />
+              <Route path="abonnements"  element={<AbonnementsPage />} />
               <Route path="media"        element={<MediaPage />} />
               <Route path="contenu"      element={<ContenuPage />} />
               <Route path="annonces"     element={<AnnoncesPage />} />

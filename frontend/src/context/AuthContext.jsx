@@ -1,5 +1,5 @@
 // src/context/AuthContext.jsx
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import api from '../services/api';
 
 const AuthContext = createContext(null);
@@ -17,27 +17,35 @@ export function AuthProvider({ children }) {
       .finally(() => setLoading(false));
   }, []);
 
-  async function login(email, password) {
+  const login = useCallback(async (email, password) => {
     const { data } = await api.post('/account/login', { email, password });
     localStorage.setItem('token', data.token);
     setUser(data.user);
     return data.user;
-  }
+  }, []);
 
-  async function register(form) {
+  const register = useCallback(async (form) => {
     const { data } = await api.post('/account/register', form);
     localStorage.setItem('token', data.token);
     setUser(data.user);
     return data.user;
-  }
+  }, []);
 
-  function logout() {
+  const logout = useCallback(() => {
     localStorage.removeItem('token');
     setUser(null);
-  }
+  }, []);
+
+  // ⚠️ Stabilise l'objet value : sans ça, chaque render du provider
+  // recrée un nouvel objet littéral et invalide tous les consommateurs
+  // du contexte qui l'utilisent dans un tableau de dépendances (useEffect, etc.)
+  const value = useMemo(
+    () => ({ user, loading, login, register, logout }),
+    [user, loading, login, register, logout]
+  );
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

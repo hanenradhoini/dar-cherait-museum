@@ -99,15 +99,79 @@ function TarifCard({ t, isLast }) {
   );
 }
 
+/* ─────────────────────────────────────────────
+   Effet de fragmentation (shatter) — chaque photo est découpée
+   en tuiles qui s'assemblent/se dispersent avec rotation aléatoire
+───────────────────────────────────────────── */
+const SHATTER_COLS = 6;
+const SHATTER_ROWS = 4;
+
+function seededRandom(seed) {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
+
+function ShatterTile({ src, row, col, isActive, tileIndex, slideIndex }) {
+  const seedBase = slideIndex * 97 + tileIndex * 3.7;
+  const rx = (seededRandom(seedBase + 1) - 0.5) * 220;
+  const ry = (seededRandom(seedBase + 2) - 0.5) * 220;
+  const rot = (seededRandom(seedBase + 3) - 0.5) * 150;
+  const delay = tileIndex * 9;
+
+  return (
+    <div
+      style={{
+        backgroundImage: `url(${src})`,
+        backgroundSize: `${SHATTER_COLS * 100}% ${SHATTER_ROWS * 100}%`,
+        backgroundPosition: `${(col / (SHATTER_COLS - 1)) * 100}% ${(row / (SHATTER_ROWS - 1)) * 100}%`,
+        transform: isActive
+          ? 'translate(0, 0) rotate(0deg) scale(1)'
+          : `translate(${rx}px, ${ry}px) rotate(${rot}deg) scale(0.4)`,
+        opacity: isActive ? 1 : 0,
+        transition: `transform 850ms cubic-bezier(0.22, 0.8, 0.3, 1) ${delay}ms, opacity 600ms ease ${delay}ms`,
+        willChange: 'transform, opacity',
+      }}
+    />
+  );
+}
+
+function ShatterSlide({ src, isActive, slideIndex }) {
+  const tiles = [];
+  for (let r = 0; r < SHATTER_ROWS; r++) {
+    for (let c = 0; c < SHATTER_COLS; c++) {
+      const idx = r * SHATTER_COLS + c;
+      tiles.push(
+        <ShatterTile key={idx} src={src} row={r} col={c}
+          isActive={isActive} tileIndex={idx} slideIndex={slideIndex} />
+      );
+    }
+  }
+  return (
+    <div
+      className="absolute inset-0 grid"
+      style={{
+        gridTemplateColumns: `repeat(${SHATTER_COLS}, 1fr)`,
+        gridTemplateRows: `repeat(${SHATTER_ROWS}, 1fr)`,
+        zIndex: isActive ? 1 : 0,
+        pointerEvents: 'none',
+      }}
+      aria-hidden={!isActive}
+    >
+      {tiles}
+    </div>
+  );
+}
+
 function HeroCardSlider({ images = [] }) {
   const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
   const total = images.length;
 
   useEffect(() => {
-    if (total <= 1) return;
+    if (total <= 1 || paused) return;
     const timer = setInterval(() => setIndex(i => (i + 1) % total), 5000);
     return () => clearInterval(timer);
-  }, [total]);
+  }, [total, paused]);
 
   if (total === 0) return (
     <div className="w-full h-[380px] md:h-[460px] rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center">
@@ -116,25 +180,27 @@ function HeroCardSlider({ images = [] }) {
   );
 
   return (
-    <div className="relative w-full h-[380px] md:h-[460px] rounded-2xl overflow-hidden shadow-2xl border-2 border-white/20">
+    <div
+      className="relative w-full h-[380px] md:h-[460px] rounded-2xl overflow-hidden shadow-2xl border-2 border-white/20"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
       {images.map((url, i) => (
-        <img key={`${url}-${i}`} src={url} alt=""
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${i === index ? 'opacity-100' : 'opacity-0'}`} />
+        <ShatterSlide key={`${url}-${i}`} src={url} isActive={i === index} slideIndex={i} />
       ))}
-      <div className="absolute inset-0 bg-gradient-to-t from-royal-deep/40 via-transparent to-transparent pointer-events-none" />
-      {/* Badge ouvert */}
-      
+      <div className="absolute inset-0 bg-gradient-to-t from-royal-deep/40 via-transparent to-transparent pointer-events-none z-[2]" />
+
       {total > 1 && (
         <>
           <button type="button" onClick={() => setIndex(i => (i - 1 + total) % total)}
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full border border-white/40 text-white flex items-center justify-center hover:bg-white/20 transition-colors text-xl">
+            className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full border border-white/40 text-white flex items-center justify-center hover:bg-white/20 transition-colors text-xl">
             ‹
           </button>
           <button type="button" onClick={() => setIndex(i => (i + 1) % total)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full border border-white/40 text-white flex items-center justify-center hover:bg-white/20 transition-colors text-xl">
+            className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full border border-white/40 text-white flex items-center justify-center hover:bg-white/20 transition-colors text-xl">
             ›
           </button>
-          <div className="absolute bottom-4 right-5 flex gap-1.5">
+          <div className="absolute bottom-4 right-5 flex gap-1.5 z-20">
             {images.map((_, i) => (
               <button key={i} type="button" onClick={() => setIndex(i)}
                 className={`h-1.5 rounded-full transition-all ${i === index ? 'w-6 bg-gold' : 'w-1.5 bg-white/50'}`} />
@@ -188,9 +254,9 @@ function AnnonceCard({ annonce: a, expanded, onToggle }) {
 
   return (
     <button type="button" onClick={onToggle}
-      className="text-left bg-white rounded-2xl shadow-card border border-azure overflow-hidden hover-lift group cursor-pointer">
+      className="h-full w-full flex flex-col text-left bg-white rounded-2xl shadow-card border border-azure overflow-hidden hover-lift group cursor-pointer">
       {a.imageUrl ? (
-        <div className="relative h-48 overflow-hidden">
+        <div className="relative h-48 flex-shrink-0 overflow-hidden">
           <img src={a.imageUrl} alt={a.titre}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
           <div className="absolute inset-0 bg-gradient-to-t from-royal/40 to-transparent" />
@@ -199,9 +265,9 @@ function AnnonceCard({ annonce: a, expanded, onToggle }) {
           </span>
         </div>
       ) : (
-        <div className="h-2 bg-gradient-to-r from-royal to-sky" />
+        <div className="h-2 flex-shrink-0 bg-gradient-to-r from-royal to-sky" />
       )}
-      <div className="p-6">
+      <div className="p-6 flex flex-col flex-1">
         {!a.imageUrl && (
           <span className="text-[9px] tracking-[2px] uppercase text-gold font-bold block mb-2">Actualité</span>
         )}
@@ -326,7 +392,7 @@ export default function HomePage() {
               {autresAnn
                 .filter(a => !expandedAnnonceId || (a._id ?? a.titre) === expandedAnnonceId)
                 .map((a, i) => (
-                  <Reveal key={a._id ?? `a-${i}`} delay={expandedAnnonceId ? 0 : i * 120}>
+                  <Reveal key={a._id ?? `a-${i}`} delay={expandedAnnonceId ? 0 : i * 120} className="h-full">
                     <AnnonceCard
                       annonce={a}
                       expanded={(a._id ?? a.titre) === expandedAnnonceId}
