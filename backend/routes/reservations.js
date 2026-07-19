@@ -129,6 +129,54 @@ router.get('/lookup', async (req, res) => {
   }
 });
 
+/**
+ * PATCH /api/reservations/annuler-public
+ * Annuler une réservation sans compte, via référence + email
+ */
+router.patch('/annuler-public', async (req, res) => {
+  const { reference, email } = req.body;
+  if (!reference || !email) {
+    return res.status(400).json({ message: 'Référence et email requis' });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const result = await client.query(
+      `SELECT * FROM reservations
+       WHERE UPPER(reference) = UPPER($1) AND LOWER(visiteur_email) = LOWER($2)`,
+      [reference, email]
+    );
+
+    if (result.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ message: 'Réservation introuvable' });
+    }
+
+    const resa = result.rows[0];
+    if (!['en_attente', 'confirmee'].includes(resa.statut)) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ message: `Impossible d'annuler une réservation "${resa.statut}"` });
+    }
+
+    await client.query(
+      `UPDATE reservations SET statut = 'annulee', annule_par = 'visiteur' WHERE id = $1`,
+      [resa.id]
+    );
+    await logHistory(client, resa.id, 'ANNULATION_VISITEUR', resa.statut, 'annulee',
+      resa.visiteur_email, 'visiteur');
+
+    await client.query('COMMIT');
+    res.json({ message: 'Réservation annulée avec succès' });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    sendError(res, err);
+  } finally {
+    client.release();
+  }
+});
+
 // ─── VISITEUR CONNECTÉ ───────────────────────────────────────────────────────
 
 /**

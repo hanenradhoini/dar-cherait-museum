@@ -10,15 +10,16 @@ import RequireUserAuth  from './components/RequireUserAuth';
 import RequireAdminAuth from './components/RequireAdminAuth';
 
 // Pages publiques
-import HomePage         from './pages/HomePage';
-import ExpositionsPage  from './pages/ExpositionsPage';
-import OeuvresPage      from './pages/OeuvresPage';
-import VisiteGuideePage from './pages/VisiteGuideePage';
-import ContactPage      from './pages/ContactPage';
-import InformationsPage from './pages/InformationsPage';
-import MonComptePage    from './pages/MonComptePage';
-import LoginPage        from './pages/auth/LoginPage';
-import RegisterPage     from './pages/auth/RegisterPage';
+import HomePage             from './pages/HomePage';
+import ExpositionsPage      from './pages/ExpositionsPage';
+import OeuvresPage          from './pages/OeuvresPage';
+import VisiteGuideePage     from './pages/VisiteGuideePage';
+import ContactPage          from './pages/ContactPage';
+import InformationsPage     from './pages/InformationsPage';
+import MonComptePage        from './pages/MonComptePage';
+import LoginPage            from './pages/auth/LoginPage';
+import RegisterPage         from './pages/auth/RegisterPage';
+import SuiviReservationPage from './pages/SuiviReservationPage';
 
 // Pages admin
 import AdminLoginPage   from './admin/AdminLoginPage';
@@ -49,6 +50,7 @@ export default function App() {
               <Route path="informations" element={<InformationsPage />} />
               <Route path="connexion"    element={<LoginPage />} />
               <Route path="inscription"  element={<RegisterPage />} />
+              <Route path="suivi-reservation" element={<SuiviReservationPage />} />
               <Route path="mon-compte"   element={
                 <RequireUserAuth><MonComptePage /></RequireUserAuth>
               } />

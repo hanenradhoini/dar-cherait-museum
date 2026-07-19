@@ -55,6 +55,34 @@ function useCountUp(target, duration = 1100) {
 }
 
 /* ─────────────────────────────────────────────
+   useTypewriter — révèle un texte caractère par caractère,
+   avec un délai de démarrage. Retourne le nombre de caractères
+   actuellement visibles.
+───────────────────────────────────────────── */
+function useTypewriter(text, speed = 35, startDelay = 500) {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    setCount(0);
+    let i = 0;
+    let interval;
+    const timeout = setTimeout(() => {
+      interval = setInterval(() => {
+        i += 1;
+        setCount(i);
+        if (i >= text.length) clearInterval(interval);
+      }, speed);
+    }, startDelay);
+    return () => {
+      clearTimeout(timeout);
+      clearInterval(interval);
+    };
+  }, [text, speed, startDelay]);
+
+  return count;
+}
+
+/* ─────────────────────────────────────────────
    TarifCard — carte tarif avec compteur animé + léger effet 3D au survol
 ───────────────────────────────────────────── */
 function TarifCard({ t, isLast }) {
@@ -162,6 +190,8 @@ function ShatterSlide({ src, isActive, slideIndex }) {
   );
 }
 
+/* Diaporama hero — taille agrandie (plus haut + plus large grâce à sa colonne
+   qui occupe désormais 3/5 de la largeur au lieu de 1/2, voir grille plus bas) */
 function HeroCardSlider({ images = [] }) {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -174,14 +204,14 @@ function HeroCardSlider({ images = [] }) {
   }, [total, paused]);
 
   if (total === 0) return (
-    <div className="w-full h-[380px] md:h-[460px] rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center">
+    <div className="w-full h-[460px] md:h-[560px] lg:h-[620px] rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center">
       <span className="font-display text-5xl text-gold/30">✦</span>
     </div>
   );
 
   return (
     <div
-      className="relative w-full h-[380px] md:h-[460px] rounded-2xl overflow-hidden shadow-2xl border-2 border-white/20"
+      className="relative w-full h-[460px] md:h-[560px] lg:h-[620px] rounded-2xl overflow-hidden shadow-2xl border-2 border-white/20"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
@@ -302,6 +332,15 @@ export default function HomePage() {
     setExpandedAnnonceId(current => (current === id ? null : id));
   }
 
+  /* ── Titre hero en effet Typewriter ── */
+  const titreLigne1 = "Découvrez la splendeur de la ";
+  const titreLigne2 = "civilisation tunisienne";
+  const titreComplet = titreLigne1 + titreLigne2;
+  const typedCount = useTypewriter(titreComplet, 32, 550);
+  const typingEnCours = typedCount < titreComplet.length;
+  const ligne1Visible = titreLigne1.slice(0, Math.min(typedCount, titreLigne1.length));
+  const ligne2Visible = titreLigne2.slice(0, Math.max(0, typedCount - titreLigne1.length));
+
   return (
     <div className="bg-[#D6E4F5]">
 
@@ -316,35 +355,41 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* ── HERO ── fond bleu royal garanti + image hero en overlay transparent */}
+      {/* ── HERO ── fond bleu royal garanti + image hero visible en arrière-plan */}
       <section className="relative overflow-hidden bg-royal-deep">
-        {/* Image hero en fond semi-transparent pour enrichir visuellement */}
+        {/* Image hero en fond, bien visible (opacité relevée) */}
         {hero && (
-          <div className="absolute inset-0 bg-cover bg-center opacity-30"
+          <div className="absolute inset-0 bg-cover bg-center opacity-90"
             style={{ backgroundImage: `url(${hero})` }} />
         )}
-        {/* Gradient bleu garantissant la lisibilité du texte */}
-        <div className="absolute inset-0 bg-gradient-to-r from-royal-deep/98 via-royal-deep/85 to-royal-deep/50" />
+        {/* Voile bleu allégé : fort côté texte (gauche), léger côté photo (droite) */}
+        <div className="absolute inset-0 bg-gradient-to-r from-royal-deep/70 via-royal-deep/40 to-royal-deep/10" />
         {/* Cercle décoratif */}
         <div className="absolute top-1/3 left-[5%] w-64 h-64 rounded-full bg-gold/5 animate-float hidden lg:block" />
 
         <div className="max-w-7xl mx-auto px-8 md:px-16 py-20 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
 
-            {/* ── Texte gauche ── */}
-            <div>
+            {/* ── Texte gauche (2/5 de la largeur) ── */}
+            <div className="lg:col-span-2 text-left">
               <div className="section-tag mb-5 animate-slide-right opacity-0"
                 style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
                 ✦ &nbsp; Musée d'art & traditions · Tozeur, Tunisie
               </div>
-              <h1 className="font-display text-4xl md:text-5xl lg:text-6xl text-white leading-[1.15] mb-6 animate-fade-up opacity-0"
-                style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
-                Découvrez la splendeur de la{' '}
-                <span className="text-gold">civilisation tunisienne</span>
+
+              {/* Titre : effet Typewriter + fade up */}
+              <h1 className="font-display text-2xl md:text-3xl lg:text-4xl text-white leading-[1.25] mb-5 min-h-[3.6em] md:min-h-[3.3em] lg:min-h-[3.45em] animate-fade-up opacity-0 [text-shadow:_0_2px_16px_rgba(10,20,50,0.85)]"
+                style={{ animationDelay: '150ms', animationFillMode: 'forwards' }}>
+                {ligne1Visible}
+                <span className="text-gold">{ligne2Visible}</span>
+                {typingEnCours && (
+                  <span className="inline-block w-[3px] md:w-[4px] h-[0.85em] bg-gold ml-1 align-middle animate-pulse" />
+                )}
               </h1>
+
               <div className="w-12 h-0.5 bg-gold mb-6 animate-fade-in opacity-0"
                 style={{ animationDelay: '600ms', animationFillMode: 'forwards' }} />
-              <p className="text-white/85 text-sm md:text-base leading-relaxed mb-10 max-w-lg animate-fade-in opacity-0"
+              <p className="text-white/85 text-sm md:text-base leading-relaxed mb-10 max-w-lg animate-fade-in opacity-0 [text-shadow:_0_1px_8px_rgba(10,20,50,0.7)]"
                 style={{ animationDelay: '700ms', animationFillMode: 'forwards' }}>
                 Trois espaces d'exception pour un voyage unique à travers l'histoire,
                 l'art et les traditions de la Tunisie. Une expérience culturelle inoubliable au cœur du désert.
@@ -365,8 +410,8 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* ── Diaporama card droite ── */}
-            <div className="animate-fade-in opacity-0"
+            {/* ── Diaporama card droite (3/5 de la largeur, agrandi) ── */}
+            <div className="lg:col-span-3 animate-fade-in opacity-0"
               style={{ animationDelay: '500ms', animationFillMode: 'forwards' }}>
               <HeroCardSlider images={heroImages} />
             </div>

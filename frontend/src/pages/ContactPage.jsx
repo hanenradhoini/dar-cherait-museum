@@ -1,5 +1,6 @@
 // src/pages/ContactPage.jsx
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
@@ -102,10 +103,18 @@ export default function ContactPage() {
           <p className="text-sm text-gray-500 mb-8">
             Un email de confirmation vous a été envoyé. Vous serez notifié dès validation par notre équipe.
           </p>
-          <button onClick={() => { setSuccess(null); setForm(f => ({ ...f, date_visite:'', message:'' })); }}
-            className="bg-brown-deep text-ivory px-8 py-3 hover:bg-sand hover:text-brown-deep transition-colors">
-            Faire une autre réservation
-          </button>
+          <div className="space-y-3">
+            <Link
+              to={`/suivi-reservation?code=${encodeURIComponent(success)}`}
+              className="block w-full text-center border border-brown-deep text-brown-deep py-3 font-semibold hover:bg-brown-deep hover:text-ivory transition-colors"
+            >
+              Suivre / annuler ma réservation
+            </Link>
+            <button onClick={() => { setSuccess(null); setForm(f => ({ ...f, date_visite:'', message:'' })); }}
+              className="w-full bg-brown-deep text-ivory px-8 py-3 hover:bg-sand hover:text-brown-deep transition-colors">
+              Faire une autre réservation
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -246,14 +255,19 @@ export default function ContactPage() {
               <TarifsBlock tarifs={settings?.tarifs} />
             </div>
 
-            <div className="bg-sand/10 backdrop-blur-md border border-sand/30 rounded-xl p-6 text-sm text-gray-600">
+            {/* ── Bon à savoir → uniquement le lien de suivi de réservation ── */}
+            <div className="bg-sand/10 backdrop-blur-md border border-sand/30 rounded-xl p-6">
               <p className="font-semibold text-brown-deep mb-2">💡 Bon à savoir</p>
-              <ul className="space-y-1 list-disc list-inside">
-                <li>Confirmation sous 24–48h</li>
-                <li>Paiement sur place</li>
-                <li>Annulation gratuite jusqu'à 24h avant</li>
-                <li>Tarifs réduits pour groupes (+10 pers.)</li>
-              </ul>
+              <p className="text-sm text-gray-600 mb-4">
+                Vous avez déjà réservé ? Retrouvez le statut de votre réservation
+                ou annulez-la à tout moment grâce à votre numéro de référence.
+              </p>
+              <Link
+                to="/suivi-reservation"
+                className="block w-full text-center border border-brown-deep text-brown-deep hover:bg-brown-deep hover:text-ivory rounded py-2.5 text-sm font-semibold transition-colors"
+              >
+                Suivre / annuler ma réservation
+              </Link>
             </div>
           </div>
         </div>
